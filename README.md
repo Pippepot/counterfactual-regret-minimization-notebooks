@@ -28,8 +28,8 @@ The winning player is the one who claims the most battlefields.
 ### Example
 - S = 6
 - N = 4
-- Player 1 = (2, 1, 1, 3)
-- Player 2 = (1, 4, 1, 0)
+- Player 1 = [2 1 1 3]
+- Player 2 = [1 4 1 0]
   
 Player 1 wins the game as the outcome from player 1's perspective is positive (Win=1, Loss=-1, Draw=0, Win=1) = 1
 
@@ -57,3 +57,32 @@ Here is a summary of possible play sequences with the resulting chip payoffs:
 
 ### Notebook
 A Nash equilibrium is found (one of multiple Nash equilibria).
+
+## Dudo
+In this simplified Dudo game, only 2 players play against eachother.
+Each player rolls their dice/die and keeps the roll as private information.
+The players then takes turns making increasingly stronger claims about the total strength of all the dice.
+A claim consists of an amount of ranks (face of the die) where higher ranks are stronger and higher amounts of ranks are even stronger.
+There is one exception; dice with rank 1 count towards the other ranks aswell, thus making a claim involving an amount of 1s half as likely as other claims of the same amount of ranks.
+Therefore claims involving 1s are ranked higher than claims involving 6s.
+
+Below is a table of claims and strengths for a game with 2 dice
+| Strength | 0 | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9 | 10 | 11 |
+| - | - | - | - | - | - | - | - | - | - | - | - | - |
+| Claim (amount × rank) | 1 × 2 | 1 × 3 | 1 × 4 | 1 × 5 | 1 × 6 | 1 × 1 | 2 × 2 | 2 × 3 | 2 × 4 | 2 × 5 | 2 × 6 | 2 × 1 |
+
+
+The claim has to be stronger than the previous claim to be valid. If the player does not want to make a claim but instead test the opponents claim, they can call Dudo.
+When a player calls Dudo both players has to reveal their original roll.
+The player calling Dudo loses if the rank count exceeds or matches the claim and wins otherwise if the rank count is less than the claim.
+
+For example:
+- Player 1 rolls 4
+- Player 2 rolls 1
+- Player 1 claims 1 x 4
+- Player 2 claims 1 x 6
+- Player 1 calls Dudo and loses since the rank count of the claim (1 x 6) matches the total rank count (as 1 also counts towards the rank count of 6s)
+
+### Notebook
+A Dudo model is trained.
+The model can play against itself and you can also play against the model.
