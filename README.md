@@ -3,7 +3,7 @@
 Counterfactual regret minimization (CFR) is a technique that converges to a Nash equilibrium for imperfect information games.
 CFR learns a Nash equilibrium through in self-play.
 It adjusts its strategy by evaluating the payoff of the action it chose against the payoffs it could have obtained from alternative actions, thus acknowledging and minimizing the regret associated with not selecting the most advantageous action.
-This repository contains implementations of CFR programs from http://modelai.gettysburg.edu/2013/cfr/cfr.pdf
+This repository mostly contains implementations of CFR programs from http://modelai.gettysburg.edu/2013/cfr/cfr.pdf
 
 ## Rock Paper Scissors
 In the classic game of Rock Paper Scissors, each player selects one of three actions (rock, paper or scissors).
@@ -86,3 +86,67 @@ For example:
 ### Notebook
 A Dudo model is trained.
 The model can play against itself and you can also play against the model.
+
+## Liar Die
+A player begins by rolling a die and keeps the result as secret information.
+The player then claims a roll rank.
+The opponent then has two possible actions:
+- Doubt: The opponent doubts the claim, the roll is revealed and compared against the rank
+claimed. If the roll rank is greater than or equal to the claim rank, the player wins. Otherwise,
+the opponent wins.
+- Accept: The opponent accepts the claim. Without revealing the prior roll rank, the die is given
+to the opponent, who now takes on the same role as the initial player with one exception. After
+the die is again secretly rolled and observed, one must make a claim that is higher than the
+previous claim. Thus, players will take turns secretly rolling the die and making successively
+higher claims until one player doubts their opponent’s claim, and the roll is checked to see who
+wins the game.
+
+### Notebook
+This Liar Die implementation is using Fixed-Strategy Iteration Counterfactual Regret Minimization (FSICFR).
+
+CFR traverses extensive game subtrees, recursing forward with reach probabilities that
+each player will play to each node (i.e. information set) while maintaining history, and backpropagating
+utilities used to update parent node action regrets and thus future strategy.
+
+Fixed-Strategy Iteration CFR (FSICFR) divides the recursive CFR algorithm into two iterative
+passes, one forward and one backward, through a directed acyclic graph of nodes. On the forward pass, visit counts and
+reach probabilities of each player are accumulated, yet all strategies remain fixed. (By contrast, in CFR,
+the strategy at a node is updated with each CFR visit.) After all visits are counted and probabilities
+are accumulated, a backward pass computes utilities and updates regrets. FSICFR computational
+time complexity is proportional to the number of nodes times the average node outdegree, whereas
+CFR complexity is proportional to the number of node visits times the average node outdegree. Since
+the number of node visits grows exponentially in such abstracted problems, FSICFR has exponential
+savings in computational time per training iteration relative to CFR.
+
+The model learns the optimal strategy for what die rank to claim and whether to doubt or accept the opponents claim
+
+## Blackjack
+The player makes a bet and is dealt two cards face up. The dealer is dealt one card face up and one card face down.
+
+The objective of the game is to have a hand that sums to more than the dealer's hand, but does not sum to more than 21.
+
+Cards 2 through 10 has values corresponding to their number. Face cards (jack, queen, king) are all valued as 10.
+Aces can either take the value 11 or 1.
+
+In this game of Blackjack, the player can take 4 actions.
+- Hit: The player is dealt an additional card
+- Stand: The player does not want any additional cards and the game proceeds to showdown i.e. the dealer reveals their card and deals additional cards to themselves until their hand sums to 17 or more.
+- Double Down: The player doubles their initial bet and receives a single additional card. The game proceeds to showdown.
+- Split: This action can only be taken if the player is dealt two cards of the same rank. The player splits the hand into two hands and is dealt another card for each hand. The player bets an additional amount the size of the initial bet, so that there is a bet on each hand.
+
+If the dealer is dealt blackjack (21), then the player takes money back if they also got dealt blackjack, otherwise the player loses with no opportunity to take actions.
+If the player is dealt blackjack and the dealer is not, then the player receives 2.5 times their bet in return.
+If the player wins they receive their double their bet, and if they lose they receive nothing and the dealer takes their bet.
+
+### Notebook
+There are two versions of the blackjack model: The first does not count cards and the second does.
+
+The model that does not count cards has a negative expected value when fully trained. This is as expected as the house has the edge in this game. Or does it...
+
+The second model counts the cards using the Wong-Halves card counting method.
+The idea of card counting is to have a running count that is added to or subtracted from based on the dealt cards.
+The player should bet big when the count is high i.e. there are more high cards in the deck which is favourable to the player.
+In the implementation, the player bets big when the count is greater than or equal to 4.
+I have experimented with learning the optimal count to bet big on, using a seperate CFR algorithm for the count only.
+This led to instability in the learning and did not reliably produce a positive expected value.
+Therefore, I have simply hardcoded the big bet count to 4.
